@@ -145,7 +145,9 @@ function verifyToken(req, res, next) {
 
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    // 401 = invalid or expired token (the frontend logs the user out);
+    // 403 is kept for "logged in but not allowed" (authorizeRoles)
+    if (err) return res.status(401).json({ message: "Session expired" });
     req.user = user;
     next();
   });
@@ -387,7 +389,12 @@ const createDefaultAdmin = async () => {
       .execute("SELECT * FROM users WHERE username = ?", ["admin"]);
 
     if (rows.length === 0) {
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      // The password comes from the environment so it never appears in the code
+      if (!process.env.ADMIN_PASSWORD) {
+        console.log("No admin user found and ADMIN_PASSWORD is not set: skipping creation.");
+        return;
+      }
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
       await pool
         .promise()
         .execute(
