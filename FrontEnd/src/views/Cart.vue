@@ -1,48 +1,43 @@
 <template>
   <div class="cart">
     <h1>Your cart</h1>
-    <div class="cart-items">
-      <div class="cart-item" v-for="cart in cartitem" :key="cart.cart_id">
+    <p v-if="!isLoggedIn()" class="guest-note">
+      You are not logged in.
+      <router-link to="/log-in">Log in</router-link> to save your cart to your account.
+    </p>
+    <div v-if="cartitem.length > 0" class="cart-items">
+      <div class="cart-item" v-for="cart in cartitem" :key="cart.cart_id ?? cart.product_id">
         <h2>{{ cart.product_name }}</h2>
         <img v-if="cart.img_url" :src="cart.img_url" alt="Product Image" style="width: 100px; height: auto;" />
         <p>Product ID: {{ cart.product_id || "N/A" }}</p>
         <p>Quantity: {{ cart.quantity }}</p>
         <p>Added At: {{ new Date(cart.added_at).toLocaleString() }}</p>
-        <button @click="removeFromCart(cart.cart_id)">Remove</button>
+        <button @click="removeItem(cart.product_id)">Remove</button>
       </div>
     </div>
+    <p v-else class="empty-cart">Your cart is empty.</p>
   </div>
 </template>
 
 
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "../config.js";
+import { getCart, removeFromCart, isLoggedIn } from "../cart.js";
 
 const cartitem = ref([]);
 
 const fetchCartItems = async () => {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get(`${API_BASE_URL}/cart`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    cartitem.value = response.data;
-    console.log(response.data);
+    cartitem.value = await getCart();
   } catch (error) {
     console.error("Error fetching cart items:", error);
   }
 };
 
-const removeFromCart = async (cartId) => {
+const removeItem = async (productId) => {
   try {
-    const token = localStorage.getItem("token");
-    await axios.delete(`${API_BASE_URL}/cart`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { product_id: cartId },
-    });
-    cartitem.value = cartitem.value.filter((item) => item.cart_id !== cartId);
+    await removeFromCart(productId);
+    cartitem.value = cartitem.value.filter((item) => item.product_id !== productId);
     alert("Item removed from cart successfully!");
   } catch (error) {
     console.error("Error removing item from cart:", error);
@@ -72,6 +67,25 @@ onMounted(() => {
   margin-bottom: 30px;
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 10px;
+}
+
+.guest-note {
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: #2d3748;
+}
+
+.guest-note a {
+  color: #38a169;
+  font-weight: 600;
+}
+
+.empty-cart {
+  color: #999;
+  font-style: italic;
 }
 
 .cart-items {

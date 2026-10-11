@@ -24,6 +24,7 @@
 import axios from "axios";
 import { auth } from "../auth.js";
 import { API_BASE_URL } from "../config.js";
+import { mergeGuestCart } from "../cart.js";
 
 export default {
   data() {
@@ -48,6 +49,7 @@ export default {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("username", this.username);
         localStorage.setItem("role", response.data.role);
+        await mergeGuestCart();
         auth.login();
         this.username = "";
         this.password = "";

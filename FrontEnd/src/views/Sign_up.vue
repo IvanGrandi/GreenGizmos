@@ -25,6 +25,7 @@
 import axios from "axios";
 import { auth } from "../auth.js";
 import { API_BASE_URL } from "../config.js";
+import { mergeGuestCart } from "../cart.js";
 
 export default {
   data() {
@@ -55,6 +56,7 @@ export default {
 
         localStorage.setItem("token", loginResponse.data.token);
         localStorage.setItem("username", this.username);
+        await mergeGuestCart();
         auth.login();
 
         this.$router.push("/");

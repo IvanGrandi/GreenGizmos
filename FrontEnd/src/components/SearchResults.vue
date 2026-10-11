@@ -32,6 +32,7 @@ import { useRoute } from "vue-router";
 import axios from "axios";
 import { API_BASE_URL } from "../config.js";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import { addToCart } from "../cart.js";
 
 const route = useRoute();
 const searchTerm = ref(route.query.q || "");
@@ -61,26 +62,6 @@ watch(
 );
 
 fetchResults();
-
-const addToCart = async (product) => {
-  try {
-    const token = localStorage.getItem("token");
-    await axios.post(
-      `${API_BASE_URL}/cart`, 
-      {
-        product_id: product.product_id,
-        quantity: 1,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    alert(`${product.product_name} has been added to your cart!`);
-  } catch (error) {
-    console.error("Error adding product to cart:", error);
-    alert("Failed to add product to cart.");
-  }
-};
 
 const optimizeImageUrl = (url) => {
   if (!url || !url.includes('/upload/')) return url;

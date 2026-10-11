@@ -190,27 +190,33 @@ app.post("/login", (req, res) => {
 // Routes for the Cart
 
 // Adding a product to the cart
-app.post("/cart", verifyToken, (req, res) => {
+app.post("/cart", verifyToken, async (req, res) => {
   const { product_id, quantity } = req.body; // Assuming quantity is sent in the request body
   const user_id = req.user.user_id; // Get the user_id from the token
 
-  const query = `
-    INSERT INTO Cart (user_id, product_id, quantity)
-    VALUES (?, ?, ?)
-    ON DUPLICATE KEY UPDATE quantity = quantity + ?;
-  `;
+  try {
+    // Increase the quantity if the product is already in the cart,
+    // otherwise insert a new row (the Cart table has no unique key to rely on)
+    const [result] = await pool.promise().execute(
+      `
+      UPDATE Cart SET quantity = quantity + ?
+      WHERE user_id = ? AND product_id = ? AND status = 'active'
+      `,
+      [quantity, user_id, product_id]
+    );
 
-  pool.query(
-    query,
-    [user_id, product_id, quantity, quantity],
-    (err, results) => {
-      if (err) {
-        console.error("Error adding product to cart:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
-      res.json({ message: "Product added to cart successfully" });
+    if (result.affectedRows === 0) {
+      await pool.promise().execute(
+        "INSERT INTO Cart (user_id, product_id, quantity) VALUES (?, ?, ?)",
+        [user_id, product_id, quantity]
+      );
     }
-  );
+
+    res.json({ message: "Product added to cart successfully" });
+  } catch (err) {
+    console.error("Error adding product to cart:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // Fetching the cart items for a user
