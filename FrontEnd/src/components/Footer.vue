@@ -19,7 +19,7 @@
   </div>
 
   <div class="footer-bottom">
-    <p>© 2025 GreenGizmos. All rights reserved.</p>
+    <p>© {{ new Date().getFullYear() }} GreenGizmos. All rights reserved.</p>
   </div>
 
 </div>
@@ -46,11 +46,6 @@
 }
 
 
-.footer-container ul {
-  list-style: none;
-  padding: 0;
-}
-
 .footer-container li, .footer-container a {
   color: white;
   text-decoration: none;
@@ -62,12 +57,6 @@
   text-decoration: underline;
 }
 
-.footer-social .social-icons a img {
-  width: 24px;
-  height: 24px;
-  margin-right: 10px;
-}
-
 .footer-bottom {
   text-align: center;
   border-top: 1px solid #ffffff33;
@@ -76,8 +65,19 @@
   font-size: 12px;
 }
 
-.footer-about{
-    width: 50%;
+.footer-about {
+  width: 50%;
+}
+
+@media (max-width: 700px) {
+  .footer-container {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .footer-about {
+    width: 100%;
+  }
 }
 
 </style>

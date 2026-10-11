@@ -7,12 +7,22 @@ import { Analytics } from "@vercel/analytics/vue";
 </script>
 
 <template>
-  <Menu></Menu>
-  <div style="margin-top: 130px">
-    <router-view></router-view>
+  <Menu />
+  <!-- Leaves room for the fixed header (80px menu + 50px search bar) -->
+  <main class="page-content">
+    <router-view />
     <SpeedInsights />
     <Analytics />
-  </div>
-  <Footer></Footer>
+  </main>
+  <Footer />
   <Toast />
 </template>
+
+<style scoped>
+.page-content {
+  /* flow-root stops the first child's top margin from merging into this one */
+  display: flow-root;
+  margin-top: 130px;
+  min-height: calc(100vh - 130px);
+}
+</style>

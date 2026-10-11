@@ -1,17 +1,25 @@
 <template>
   <div class="cart">
     <h1>Your cart</h1>
-    <p v-if="!isLoggedIn()" class="guest-note">
+    <p v-if="!auth.isLoggedIn" class="guest-note">
       You are not logged in.
       <router-link to="/log-in">Log in</router-link> to save your cart to your account.
     </p>
-    <div v-if="cartitem.length > 0" class="cart-items">
+    <LoadingSpinner v-if="loading" />
+    <div v-else-if="cartitem.length > 0" class="cart-items">
       <div class="cart-item" v-for="cart in cartitem" :key="cart.cart_id ?? cart.product_id">
-        <h2>{{ cart.product_name }}</h2>
-        <img v-if="cart.img_url" :src="cart.img_url" alt="Product Image" style="width: 100px; height: auto;" />
-        <p>Product ID: {{ cart.product_id || "N/A" }}</p>
-        <p>Quantity: {{ cart.quantity }}</p>
-        <p>Added At: {{ new Date(cart.added_at).toLocaleString() }}</p>
+        <img
+          v-if="cart.img_url"
+          :src="optimizeImageUrl(cart.img_url, 200)"
+          :alt="cart.product_name"
+          loading="lazy"
+          class="cart-item-image"
+        />
+        <div class="cart-item-info">
+          <h2>{{ cart.product_name }}</h2>
+          <p>Quantity: {{ cart.quantity }}</p>
+          <p>Added: {{ new Date(cart.added_at).toLocaleString() }}</p>
+        </div>
         <button @click="removeItem(cart.product_id)">Remove</button>
       </div>
     </div>
@@ -19,19 +27,25 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, onMounted } from "vue";
-import { getCart, removeFromCart, isLoggedIn } from "../cart.js";
+import { getCart, removeFromCart } from "../cart.js";
+import { auth } from "../auth.js";
 import { showToast } from "../toast.js";
+import { optimizeImageUrl } from "../images.js";
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 const cartitem = ref([]);
+const loading = ref(true);
 
 const fetchCartItems = async () => {
   try {
     cartitem.value = await getCart();
   } catch (error) {
     console.error("Error fetching cart items:", error);
+    showToast("Failed to load your cart.", "error");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -46,15 +60,13 @@ const removeItem = async (productId) => {
   }
 };
 
-onMounted(() => {
-  fetchCartItems();
-});
+onMounted(fetchCartItems);
 </script>
 
 <style scoped>
 .cart {
   max-width: 1000px;
-  margin: 100px auto;
+  margin: 50px auto;
   padding: 30px;
   border-radius: 16px;
   background-color: #f9fafb;
@@ -96,11 +108,25 @@ onMounted(() => {
 }
 
 .cart-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.cart-item-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cart-item-info {
+  flex-grow: 1;
 }
 
 .cart-item h2 {
@@ -125,10 +151,39 @@ onMounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 10px;
 }
 
 .cart-item button:hover {
   background-color: #c53030;
+}
+
+@media (max-width: 600px) {
+  .cart {
+    margin: 20px 16px;
+    padding: 20px 16px;
+  }
+
+  .cart h1 {
+    font-size: 1.6rem;
+  }
+
+  .cart-item {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .cart-item-image {
+    width: 72px;
+    height: 72px;
+  }
+
+  .cart-item-info {
+    flex-basis: calc(100% - 84px);
+  }
+
+  .cart-item button {
+    width: 100%;
+  }
 }
 </style>

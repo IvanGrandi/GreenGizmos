@@ -1,45 +1,85 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from './views/Home.vue';
-import ComponentsUpgrades from './views/Components&Upgrades.vue';
-import ComputingEquipment from './views/Computing_equipment.vue';
-import MobileGear from './views/Mobile_Gear.vue';
-import Peripherals from './views/Peripherals.vue';
-import PrintingScanning from './views/Printing&Scanning.vue';
-import MonitorsDisplays from './views/Monitors&Displays.vue';
-import Sign_up from './views/Sign_up.vue';
-import Log_in from './views/Log_in.vue';
-import Cart from './views/Cart.vue';
-import SearchResults from './components/SearchResults.vue'; 
-import AddProduct from './components/AddProduct.vue';
-import UserManager from './views/UserManager.vue';
-import DeleteProduct from './components/DeleteProduct.vue';
+import { auth } from './auth.js';
+
+// Pages are loaded on demand, so visitors only download the code they use
+const CategoryPage = () => import('./views/CategoryPage.vue');
+
+const categoryRoute = (path, title, categories) => ({
+  path,
+  component: CategoryPage,
+  props: { categories },
+  meta: { title },
+});
 
 const routes = [
   { path: '/', component: Home, meta: { title: 'Home' } },
-  { path: '/components-upgrades', component: ComponentsUpgrades, meta: { title: 'Components & Upgrades' } },
-  { path: '/computing-equipment', component: ComputingEquipment, meta: { title: 'Computing Equipment' } },
-  { path: '/mobile-gear', component: MobileGear, meta: { title: 'Mobile Gear' } },
-  { path: '/peripherals', component: Peripherals, meta: { title: 'Peripherals' } },
-  { path: '/printing-scanning', component: PrintingScanning, meta: { title: 'Printing & Scanning' } },
-  { path: '/monitors-displays', component: MonitorsDisplays, meta: { title: 'Monitors & Displays' } },
-  { path: '/sign-up', component: Sign_up, meta: { title: 'Sign Up' } },
-  { path: '/log-in', component: Log_in, meta: { title: 'Log In' } },
-  { path: '/cart', component: Cart, meta: { title: 'Cart' } },
-  { path: '/search-results', component: SearchResults, meta: { title: 'Search Results' } },
-  { path: '/add-product', component: AddProduct, meta: { title: 'Add Product' } },
-  { path: '/delete-product', component: DeleteProduct, meta: { title: 'Delete Product' } },
-  { path: '/user-manager', component: UserManager, meta: { title: 'User Manager' } },
+  categoryRoute('/computing-equipment', 'Computing Equipment', [
+    'Laptops',
+    'Desktops',
+    'Workstations',
+    'Mini PCs / Thin Clients',
+    'All-in-One PCs',
+  ]),
+  categoryRoute('/components-upgrades', 'Components & Upgrades', [
+    'Processors (CPUs)',
+    'RAM (Memory Modules)',
+    'Storage Devices',
+    'SSDs',
+    'HDDs',
+    'NVMe Drives',
+    'Graphic Cards (GPUs)',
+    'Motherboards',
+    'Power Supplies',
+    'Cooling Fans / Heatsinks',
+  ]),
+  categoryRoute('/monitors-displays', 'Monitors & Displays', [
+    'LED / LCD Monitors',
+    'Touchscreen Monitors',
+    'Monitor Stands / Mounts / Arms',
+    'Portable Monitors',
+  ]),
+  categoryRoute('/peripherals', 'Peripherals', [
+    'Docking Stations',
+    'Keyboards (wired/wireless)',
+    'Mice (wired/wireless)',
+    'Headsets & Headphones',
+    'Webcams',
+    'Speakers',
+    'USB Hubs / Extenders',
+  ]),
+  categoryRoute('/printing-scanning', 'Printing & Scanning', [
+    'Laser Printers',
+    'Inkjet Printers',
+    'Multifunction Printers (MFPs)',
+    'Scanners',
+    'Label Printers',
+    'Toner / Ink (refurbished or compatible)',
+  ]),
+  categoryRoute('/mobile-gear', 'Mobile Gear', [
+    'Tablets',
+    'Mobile Phones',
+    'Laptop Bags / Cases',
+    'Portable Chargers / Power Banks',
+  ]),
+  { path: '/sign-up', component: () => import('./views/Sign_up.vue'), meta: { title: 'Sign Up' } },
+  { path: '/log-in', component: () => import('./views/Log_in.vue'), meta: { title: 'Log In' } },
+  { path: '/cart', component: () => import('./views/Cart.vue'), meta: { title: 'Cart' } },
+  { path: '/search-results', component: () => import('./components/SearchResults.vue'), meta: { title: 'Search Results' } },
+  { path: '/add-product', component: () => import('./components/AddProduct.vue'), meta: { title: 'Add Product', requiresAdmin: true } },
+  { path: '/delete-product', component: () => import('./components/DeleteProduct.vue'), meta: { title: 'Delete Product', requiresAdmin: true } },
+  { path: '/user-manager', component: () => import('./views/UserManager.vue'), meta: { title: 'User Manager', requiresAdmin: true } },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior: () => ({ top: 0 }),
 });
 
-router.beforeEach((to, from, next) => {
-  const defaultTitle = 'GreenGizmos';
-  document.title = to.meta.title || defaultTitle;
-  next();
+router.beforeEach((to) => {
+  if (to.meta.requiresAdmin && !auth.isAdmin) return '/log-in';
+  document.title = to.meta.title ? `${to.meta.title} | GreenGizmos` : 'GreenGizmos';
 });
 
 export default router;

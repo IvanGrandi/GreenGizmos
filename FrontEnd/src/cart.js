@@ -1,16 +1,13 @@
 import axios from "axios";
 import { API_BASE_URL } from "./config.js";
 import { showToast } from "./toast.js";
+import { auth, authHeaders } from "./auth.js";
 
 // Guests keep their cart in localStorage; it is merged into the
 // database cart when they log in or sign up.
 const GUEST_CART_KEY = "guestCart";
 
-export const isLoggedIn = () => !!localStorage.getItem("token");
-
-const authHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem("token")}`,
-});
+const isLoggedIn = () => auth.isLoggedIn;
 
 const readGuestCart = () => {
   try {

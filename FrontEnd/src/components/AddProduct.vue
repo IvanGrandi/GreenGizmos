@@ -29,7 +29,6 @@
         </div>
         <button type="submit">Add Product</button>
       </form>
-      <p v-if="message" class="success-message">{{ message }}</p>
     </div>
   </div>
 </template>
@@ -37,7 +36,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { API_BASE_URL } from "../config.js"; 
+import { API_BASE_URL } from "../config.js";
+import { authHeaders } from "../auth.js";
+import { showToast } from "../toast.js";
 
 const product_name = ref("");
 const product_price = ref("");
@@ -45,7 +46,6 @@ const product_description = ref("");
 const category_name = ref("");
 const img_url = ref("");
 const categories = ref([]);
-const message = ref("");
 
 const fetchCategories = async () => {
   try {
@@ -64,8 +64,8 @@ const addProduct = async () => {
       product_description: product_description.value,
       category_name: category_name.value,
       img_url: img_url.value,
-    });
-    message.value = response.data.message;
+    }, { headers: authHeaders() });
+    showToast(response.data.message);
 
     product_name.value = "";
     product_price.value = "";
@@ -74,6 +74,7 @@ const addProduct = async () => {
     img_url.value = "";
   } catch (error) {
     console.error("Error adding product:", error);
+    showToast(error.response?.data?.message || "Failed to add product.", "error");
   }
 };
 
@@ -126,12 +127,6 @@ button:hover {
   background-color: #1a4038;
 }
 
-.success-message {
-  margin-top: 15px;
-  color: green;
-  font-weight: bold;
-}
-
 .add_product_page {
   width: 100%;
   padding: 40px;
@@ -139,5 +134,11 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media (max-width: 600px) {
+  .add_product_page {
+    padding: 20px 16px;
+  }
 }
 </style>

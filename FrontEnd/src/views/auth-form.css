@@ -1,0 +1,78 @@
+/* Shared by Log_in.vue and Sign_up.vue */
+.auth-page {
+  width: 100%;
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 16px;
+  background-color: rgba(52, 52, 52, 0.395);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 30px 24px;
+  background-color: white;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.auth-card h2 {
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+label {
+  margin-bottom: 4px;
+}
+
+input {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  background-color: #215249;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1a4038;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  margin-top: 12px;
+  text-align: center;
+  color: #e53e3e;
+}
+
+.switch {
+  margin-top: 16px;
+  font-size: 0.95rem;
+}
+
+.switch a {
+  color: #215249;
+  font-weight: 600;
+}

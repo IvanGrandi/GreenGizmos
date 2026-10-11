@@ -28,6 +28,7 @@
 import { ref } from "vue";
 import axios from "axios";
 import { API_BASE_URL } from "../config.js";
+import { authHeaders } from "../auth.js";
 
 const product_name = ref("");
 const message = ref("");
@@ -35,11 +36,10 @@ const success = ref(false);
 
 const deleteProduct = async () => {
   try {
-    const token = localStorage.getItem("token");
     const response = await axios.delete(
       `${API_BASE_URL}/delete_product_by_name`,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
         data: { product_name: product_name.value },
       }
     );
@@ -117,5 +117,11 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media (max-width: 600px) {
+  .delete_product_page {
+    padding: 20px 16px;
+  }
 }
 </style>

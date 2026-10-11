@@ -47,18 +47,21 @@ app.get("/products", (req, res) => {
   });
 });
 
+// Accepts one or several categories (?category=A&category=B) so a page
+// can load all of its sections in a single request
 app.get("/products_by_category", async (req, res) => {
-  const category = req.query.category;
+  const categories = [].concat(req.query.category || []);
+  if (categories.length === 0) return res.json([]);
+
   try {
     const [rows] = await pool.promise().execute(
       `
-      SELECT p.* 
+      SELECT p.*, bt.category_name
       FROM Products p
       JOIN Belongs_to bt ON p.product_id = bt.product_id
-      JOIN Categories c ON bt.category_name = c.category_name
-      WHERE c.category_name = ?
+      WHERE bt.category_name IN (${categories.map(() => "?").join(", ")})
       `,
-      [category]
+      categories
     );
     res.json(rows);
   } catch (error) {
@@ -98,7 +101,9 @@ app.get("/categories", async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const { username, email, password, role = "user" } = req.body;
+  // The role is never taken from the request: anyone could register as admin
+  const { username, email, password } = req.body;
+  const role = "user";
 
   // Check if the email already exists
   pool.query(
@@ -265,17 +270,22 @@ app.delete("/cart", verifyToken, (req, res) => {
   });
 });
 
-app.post("/add_product", async (req, res) => {
-  const { product_name, product_price, product_description, category_name } =
-    req.body;
+app.post("/add_product", verifyToken, authorizeRoles("admin"), async (req, res) => {
+  const {
+    product_name,
+    product_price,
+    product_description,
+    category_name,
+    img_url,
+  } = req.body;
 
   try {
     const [result] = await pool.promise().execute(
       `
-      INSERT INTO Products (product_name, product_price, product_description)
-      VALUES (?, ?, ?)
+      INSERT INTO Products (product_name, product_price, product_description, img_url)
+      VALUES (?, ?, ?, ?)
       `,
-      [product_name, product_price, product_description]
+      [product_name, product_price, product_description, img_url || null]
     );
 
     const product_id = result.insertId;
@@ -343,24 +353,23 @@ app.delete(
     const { product_name } = req.body;
 
     try {
-      await pool.promise().execute(
-        `
-      DELETE FROM Belongs_to
-      WHERE product_id = (SELECT product_id FROM Products WHERE product_name = ?)
-      `,
-        [product_name]
-      );
+      const [products] = await pool
+        .promise()
+        .execute("SELECT product_id FROM Products WHERE product_name = ?", [
+          product_name,
+        ]);
 
-      const [result] = await pool.promise().execute(
-        `
-      DELETE FROM Products
-      WHERE product_name = ?
-      `,
-        [product_name]
-      );
-
-      if (result.affectedRows === 0) {
+      if (products.length === 0) {
         return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Remove the rows that reference the product first (foreign keys)
+      const ids = products.map((p) => p.product_id);
+      const placeholders = ids.map(() => "?").join(", ");
+      for (const table of ["Cart", "Belongs_to", "Products"]) {
+        await pool
+          .promise()
+          .execute(`DELETE FROM ${table} WHERE product_id IN (${placeholders})`, ids);
       }
 
       res.status(200).json({ message: "Product deleted successfully" });
