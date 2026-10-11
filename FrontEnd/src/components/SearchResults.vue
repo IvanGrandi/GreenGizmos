@@ -1,7 +1,8 @@
 <template>
   <div class="search-results">
     <h1>Search Results for "{{ searchTerm }}"</h1>
-    <ul v-if="results.length > 0" class="products-grid">
+    <LoadingSpinner v-if="loading" />
+    <ul v-else-if="results.length > 0" class="products-grid">
       <li v-for="product in results" :key="product.product_id" class="product-card">
         <img
           :src="optimizeImageUrl(product.img_url)"
@@ -29,13 +30,16 @@
 import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
-import { API_BASE_URL } from "../config.js"; 
+import { API_BASE_URL } from "../config.js";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 const route = useRoute();
 const searchTerm = ref(route.query.q || "");
 const results = ref([]);
+const loading = ref(false);
 
 const fetchResults = async () => {
+  loading.value = true;
   try {
     const response = await axios.get(
       `${API_BASE_URL}/search_products?q=${searchTerm.value}` 
@@ -43,6 +47,8 @@ const fetchResults = async () => {
     results.value = response.data;
   } catch (error) {
     console.error("Error fetching search results:", error);
+  } finally {
+    loading.value = false;
   }
 };
 

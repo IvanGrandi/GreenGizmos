@@ -1,7 +1,8 @@
 <template>
   <div class="category-products">
     <h2 class="category-title">{{ categoryName }}</h2>
-    <ul v-if="products.length > 0" class="products-grid">
+    <LoadingSpinner v-if="loading" />
+    <ul v-else-if="products.length > 0" class="products-grid">
       <li v-for="product in products" :key="product.product_id" class="product-card">
         
         <img :src="optimizeImageUrl(product.img_url)" loading="lazy" :alt="product.product_name" class="product-image" />
@@ -30,7 +31,8 @@
 <script setup>
 import { ref, watch } from "vue";
 import axios from "axios";
-import { API_BASE_URL } from "../config.js"; 
+import { API_BASE_URL } from "../config.js";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 const { categoryName, addToCart } = defineProps({
   categoryName: {
@@ -44,8 +46,10 @@ const { categoryName, addToCart } = defineProps({
 });
 
 const products = ref([]);
+const loading = ref(false);
 
 const fetchProductsByCategory = async () => {
+  loading.value = true;
   try {
     const response = await axios.get(
       `${API_BASE_URL}/products_by_category?category=${encodeURIComponent(categoryName)}` 
@@ -53,6 +57,8 @@ const fetchProductsByCategory = async () => {
     products.value = response.data;
   } catch (error) {
     console.error("Error fetching products:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
