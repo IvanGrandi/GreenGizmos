@@ -1,6 +1,7 @@
 <script setup>
 import Menu from "./components/Menu.vue";
 import Footer from "./components/Footer.vue";
+import Toast from "./components/Toast.vue";
 import { SpeedInsights } from "@vercel/speed-insights/vue";
 import { Analytics } from "@vercel/analytics/vue";
 </script>
@@ -13,4 +14,5 @@ import { Analytics } from "@vercel/analytics/vue";
     <Analytics />
   </div>
   <Footer></Footer>
+  <Toast />
 </template>

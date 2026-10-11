@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "./config.js";
+import { showToast } from "./toast.js";
 
 // Guests keep their cart in localStorage; it is merged into the
 // database cart when they log in or sign up.
@@ -55,10 +56,10 @@ export const addToCart = async (product) => {
       }
       writeGuestCart(items);
     }
-    alert(`${product.product_name} has been added to your cart!`);
+    showToast(`${product.product_name} has been added to your cart!`);
   } catch (error) {
     console.error("Error adding product to cart:", error);
-    alert("Failed to add product to cart.");
+    showToast("Failed to add product to cart.", "error");
   }
 };
 

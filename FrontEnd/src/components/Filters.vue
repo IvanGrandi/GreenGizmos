@@ -17,7 +17,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { API_BASE_URL } from "../config.js"; 
+import { API_BASE_URL } from "../config.js";
+import { showToast } from "../toast.js";
 
 const data = ref([]);
 const fetchData = async () => {
@@ -42,10 +43,10 @@ const addToCart = async (product) => {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-    alert(`${product.product_name} has been added to your cart!`);
+    showToast(`${product.product_name} has been added to your cart!`);
   } catch (error) {
     console.error("Error adding product to cart:", error);
-    alert("Failed to add product to cart.");
+    showToast("Failed to add product to cart.", "error");
   }
 };
 

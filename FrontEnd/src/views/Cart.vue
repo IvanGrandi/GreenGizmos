@@ -23,6 +23,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { getCart, removeFromCart, isLoggedIn } from "../cart.js";
+import { showToast } from "../toast.js";
 
 const cartitem = ref([]);
 
@@ -38,10 +39,10 @@ const removeItem = async (productId) => {
   try {
     await removeFromCart(productId);
     cartitem.value = cartitem.value.filter((item) => item.product_id !== productId);
-    alert("Item removed from cart successfully!");
+    showToast("Item removed from cart.");
   } catch (error) {
     console.error("Error removing item from cart:", error);
-    alert("Failed to remove item from cart.");
+    showToast("Failed to remove item from cart.", "error");
   }
 };
 
