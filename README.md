@@ -75,6 +75,6 @@ Alexan implemented the final version of the display of the products on the pages
 
 Everyone add some pictures to the database and resolved different bugs.
 
-Ivan hosted the databse on Railway.
+Ivan hosted the database on TiDB Cloud.
 
 Gabriel hosted the frontend and backend on Vercel.
